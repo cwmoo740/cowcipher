@@ -34,7 +34,7 @@ class Cipher:
         return self.score
 
     def shiftConstant(self, const = 1):
-        self.shift = self.shift - 1
+        self.shift = self.shift - const
         for ii, word in enumerate(self.scrambled):
             shifted = ''
             for char in word:
