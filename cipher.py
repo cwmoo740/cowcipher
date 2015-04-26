@@ -14,9 +14,11 @@ class Cipher:
         tokenizer = enchant.tokenize.get_tokenizer("en_US")
         filedata = open(filename, 'r')
         self.words = []
+        self.scrambled = []
         for (word, _) in tokenizer(filedata.read()):
             word = word.lower()
-            self.words.append(word)
+            self.scrambled.append(word)
+            self.words.append('')
         self.shift = 0
         self.score = 0.0
 
@@ -31,23 +33,55 @@ class Cipher:
         self.score = (correct * 1.0) / count
         return self.score
 
-    def shiftLetters(self):
-        self.shift = self.shift + 1
-        for ii, word in enumerate(self.words):
+    def shiftConstant(self, const = 1):
+        self.shift = self.shift - 1
+        for ii, word in enumerate(self.scrambled):
             shifted = ''
             for char in word:
                 shifted += chr((ord(char) - ord('a') + 1)
-                % (ord('z') - ord('a') + 1) + ord('a'))
+                               % (ord('z') - ord('a') + 1) + ord('a'))
             self.words[ii] = shifted
+            
+    def shiftKey(self, key):
+        self.shift = []
+        for char in key:
+            self.shift.append((ord(char) - ord('a')))
+            
+        index = 0
+        
+        for ii,word in enumerate(self.scrambled):
+            shifted = ''
+            for char in word:
+                shifted += chr((ord(char) - ord('a') - self.shift[index])
+                               % (ord('z') - ord('a') +1) + ord('a'))
+                index = (index+1) % len(self.shift)
+            self.words[ii] = shifted
+        
+            
 
-    def solve(self):
-        for i in range(ord('z') - ord('a') + 1):
-            self.shiftLetters()
+    def solve(self, key = None):
+        
+        if not key:
+            for _ in range(ord('z') - ord('a') + 1):
+                self.shiftConstant()
+                self.scoreLetters()
+                if self.score > 0.8:
+                    text = ""
+                    for word in self.words:
+                        text = text + word
+                        text = text + ' '
+                    print(text)
+                    print(self.shift)
+        else:
+            self.shiftKey(key)
             self.scoreLetters()
+            
             if self.score > 0.8:
-                text = ""
-                for word in self.words:
-                    text = text + word
-                    text = text + ' '
-                print(text)
-                print(self.shift)
+                    text = ""
+                    for word in self.words:
+                        text = text + word
+                        text = text + ' '
+                    print(text)
+                    print(self.shift)
+            else:
+                print("fail")
